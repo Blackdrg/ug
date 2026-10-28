@@ -18,7 +18,7 @@ if (!(Test-Path "app.ico")) {
     $iconArg = "/win32icon:app.ico"
 }
 
-$args = @(
+$cscArgs = @(
     "/nologo",
     "/optimize+",
     "/target:exe",
@@ -26,7 +26,7 @@ $args = @(
 )
 
 if ($iconArg -ne "") {
-    $args += $iconArg
+    $cscArgs += $iconArg
 }
 
 # Embed all necessary web assets
@@ -48,17 +48,17 @@ $assets = @(
 foreach ($asset in $assets) {
     if (Test-Path $asset) {
         $resName = $asset.Replace('\', '/')
-        $args += "/res:$asset,$resName"
+        $cscArgs += "/res:$asset,$resName"
     }
 }
 
 if (Test-Path "app.ico") {
-    $args += "/res:app.ico,app.ico"
+    $cscArgs += "/res:app.ico,app.ico"
 }
 
-$args += "Launcher.cs"
+$cscArgs += "Launcher.cs"
 
-& $csc $args
+& $csc $cscArgs
 
 if ($LASTEXITCODE -eq 0 -and (Test-Path "MysteryUnlocked.exe")) {
     $size = (Get-Item "MysteryUnlocked.exe").Length

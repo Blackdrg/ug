@@ -81,6 +81,7 @@ body.crt-scanlines::after {
 .workstation-header {
   height: 64px;
   background: rgba(9, 13, 20, 0.95);
+  -webkit-backdrop-filter: var(--glass-backdrop);
   backdrop-filter: var(--glass-backdrop);
   border-bottom: 1px solid var(--border-color);
   display: flex;
@@ -432,6 +433,7 @@ body.crt-scanlines::after {
   height: 100%;
   background: #02060c;
   overflow: hidden;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -605,6 +607,7 @@ body.crt-scanlines::after {
 .hud-btn {
   background: rgba(14, 22, 35, 0.85);
   border: 1px solid var(--border-color);
+  -webkit-backdrop-filter: var(--glass-backdrop);
   backdrop-filter: var(--glass-backdrop);
   color: #ffffff;
   font-family: var(--font-mono);
@@ -1021,6 +1024,7 @@ body.crt-scanlines::after {
   max-width: 960px;
   background: rgba(3, 6, 12, 0.88);
   border: 1px solid rgba(80, 120, 160, 0.3);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   padding: 14px 28px;
   border-radius: 6px;
@@ -1075,6 +1079,7 @@ body.crt-scanlines::after {
   left: 50%;
   transform: translateX(-50%);
   background: rgba(12, 18, 30, 0.85);
+  -webkit-backdrop-filter: var(--glass-backdrop);
   backdrop-filter: var(--glass-backdrop);
   border: 1px solid var(--border-color);
   border-radius: 30px;
@@ -1302,6 +1307,7 @@ body.crt-scanlines::after {
   padding: 12px 14px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.2);
   cursor: grab;
+  -webkit-user-select: none;
   user-select: none;
   transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease;
 }
@@ -2461,6 +2467,7 @@ body.crt-scanlines::after {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
   cursor: grab;
   z-index: 7;
+  -webkit-user-select: none;
   user-select: none;
   transition: transform 0.15s ease;
 }
@@ -2972,8 +2979,6 @@ body.crt-scanlines::after {
   transform: rotate(-35deg);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
 }
-  transition: all 0.3s ease;
-}
 
 .deduction-card.resolved-card {
   border-color: var(--neon-green);
@@ -3297,6 +3302,7 @@ body.crt-scanlines::after {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.88);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -3563,6 +3569,7 @@ body.crt-scanlines::after {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
+  -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -3913,6 +3920,7 @@ body.crt-scanlines::after {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(2, 4, 12, 0.92);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -3961,5 +3969,14 @@ body.crt-scanlines::after {
   font-size: 0.82rem;
   letter-spacing: 0.05em;
   pointer-events: none;
+}
+
+/* Modal and hidden utility classes (replaces inline styles) */
+.hidden-file-input {
+  display: none !important;
+}
+
+.hint-modal-overlay {
+  display: none;
 }
 
