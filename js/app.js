@@ -444,6 +444,8 @@ class MysteryApp {
     this.toastTimeout = setTimeout(() => {
       toast.classList.remove('show');
     }, 3500);
+  }
+
   startFooterClock() {
     const clockEl = document.getElementById('footerClock');
     if (!clockEl) return;
