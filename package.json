@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "node server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node test/playthrough-test.js",
+    "check": "node -c js/app.js js/data.js js/state.js js/exploration.js js/mystery-board.js js/evidence-dossier.js js/interrogation.js js/deduction.js js/archive.js js/audio.js server.js"
   }
 }

@@ -7,7 +7,7 @@ const STORAGE_KEY = 'MYSTERY_UNLOCKED_SAVE_V2';
 const LEGACY_STORAGE_KEY = 'MYSTERY_UNLOCKED_SAVE_V1';
 const CURRENT_SAVE_VERSION = 2;
 
-class BulletproofGameState {
+export class BulletproofGameState {
   constructor() {
     this.listeners = new Set();
     this.resetToDefaults();
@@ -131,13 +131,18 @@ class BulletproofGameState {
         currentChapter: this.currentChapter,
         unlockedEndings: this.unlockedEndings
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      if (typeof localStorage !== 'undefined' && typeof localStorage.setItem === 'function') {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }
     } catch (e) {
       console.warn('LocalStorage save failed:', e);
     }
   }
 
   load() {
+    if (typeof localStorage === 'undefined' || typeof localStorage.getItem !== 'function') {
+      return;
+    }
     try {
       // 1. Try loading v2
       let saved = localStorage.getItem(STORAGE_KEY);
