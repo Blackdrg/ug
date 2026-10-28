@@ -1,0 +1,10 @@
+{
+  "name": "mystery-unlocked-13th-file",
+  "version": "1.0.0",
+  "description": "Mystery Unlocked: The 13th File - Interactive Investigation Prototype",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  }
+}

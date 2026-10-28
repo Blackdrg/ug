@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MYSTERY UNLOCKED: The 13th File — Investigation & Mystery Board Prototype</title>
+  <meta name="description" content="Investigation · Psychological Thriller · Narrative Adventure. In 2009, 13 people disappeared from Blackwood Sub-Level 3. Find the thirteenth file before they find you.">
+  
+  <!-- Google Fonts: Space Grotesk, Syne, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="crt-scanlines">
+  <div id="app" class="app-container">
+    
+    <!-- Top Global Workstation Header -->
+    <header class="workstation-header">
+      <div class="header-brand">
+        <div class="brand-badge">DEPT OF ENERGY &bull; INCIDENT 2009-881</div>
+        <h1 class="brand-title">
+          MYSTERY UNLOCKED <span class="title-sub">THE 13TH FILE</span>
+        </h1>
+      </div>
+
+      <!-- Quick Status HUD -->
+      <div class="header-hud">
+        <div class="hud-stat-box" title="Discovered Forensic Clues">
+          <span class="hud-label">EVIDENCE RECOVERED</span>
+          <span class="hud-val text-cyan" id="statusCluesCount">2 / 16</span>
+        </div>
+        <div class="hud-stat-box" title="Broken Contradictions">
+          <span class="hud-label">CONTRADICTIONS</span>
+          <span class="hud-val text-amber" id="statusContradictions">0 / 4</span>
+        </div>
+        <div class="hud-stat-box" title="Current Active Chapter">
+          <span class="hud-label">CHAPTER</span>
+          <span class="hud-val text-green" id="statusChapter">CH 02</span>
+        </div>
+      </div>
+
+      <!-- Quick Utilities & Accessibility Toolbar -->
+      <div class="header-utilities">
+        <button class="util-btn util-highlight" id="btnHint" title="Progressive Investigation Hint [Hotkey: H]">
+          💡 <span class="nav-text">HINT [H]</span>
+        </button>
+
+        <!-- Master Volume Control -->
+        <div class="volume-slider-box" title="Adjust Master Audio Volume">
+          <label for="volumeSlider" class="vol-label">VOL</label>
+          <input type="range" id="volumeSlider" min="0" max="100" value="80" class="vol-slider" aria-label="Master Volume">
+        </div>
+
+        <button class="util-btn" id="btnToggleMute" title="Toggle Audio Synthesizer [Hotkey: M]">
+          🔊 <span class="nav-text">AUDIO</span>
+        </button>
+        <button class="util-btn" id="btnToggleScanlines" title="Toggle CRT Retro Scanline Filter [Hotkey: C]">
+          📺 <span class="nav-text">CRT</span>
+        </button>
+        <button class="util-btn" id="btnToggleMotion" title="Toggle Reduced Motion for Accessibility [Hotkey: R]">
+          ⚡ <span class="nav-text">MOTION</span>
+        </button>
+        <button class="util-btn" id="btnToggleText" title="Toggle Large High-Legibility Typography">
+          🔤 <span class="nav-text">TEXT</span>
+        </button>
+        <button class="util-btn" id="btnExportSave" title="Backup / Export Save State as JSON">
+          💾 <span class="nav-text">SAVE</span>
+        </button>
+        <button class="util-btn" id="btnImportSaveTrigger" title="Restore / Import Save State JSON">
+          📂 <span class="nav-text">LOAD</span>
+        </button>
+        <input type="file" id="fileImportSave" accept=".json" style="display:none" aria-label="Import Save JSON">
+        <button class="util-btn util-danger" id="btnResetData" title="Reset Progress and Corrupted Saves">
+          ↺ <span class="nav-text">RESET</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Bar with Keyboard Shortcut Hints -->
+    <nav class="workstation-nav" aria-label="Main Navigation">
+      <div class="nav-tabs-container">
+        <button class="nav-tab-btn active" data-view="exploration" id="tabExploration" title="Shortcut: Press 1">
+          <span class="nav-shortcut">1</span>
+          <span class="nav-icon">🏢</span>
+          <span class="nav-label">FACILITY EXPLORATION</span>
+        </button>
+        <button class="nav-tab-btn" data-view="board" id="tabBoard" title="Shortcut: Press 2">
+          <span class="nav-shortcut">2</span>
+          <span class="nav-icon">📌</span>
+          <span class="nav-label">MYSTERY BOARD</span>
+        </button>
+        <button class="nav-tab-btn" data-view="dossier" id="tabDossier" title="Shortcut: Press 3">
+          <span class="nav-shortcut">3</span>
+          <span class="nav-icon">📂</span>
+          <span class="nav-label">EVIDENCE & FORENSICS</span>
+        </button>
+        <button class="nav-tab-btn" data-view="interrogation" id="tabInterrogation" title="Shortcut: Press 4">
+          <span class="nav-shortcut">4</span>
+          <span class="nav-icon">🎙️</span>
+          <span class="nav-label">CONTRADICTION ENGINE</span>
+        </button>
+        <button class="nav-tab-btn" data-view="deduction" id="tabDeduction" title="Shortcut: Press 5">
+          <span class="nav-shortcut">5</span>
+          <span class="nav-icon">🧩</span>
+          <span class="nav-label">DEDUCTION MATRIX</span>
+        </button>
+        <button class="nav-tab-btn" data-view="archive" id="tabArchive" title="Shortcut: Press 6">
+          <span class="nav-shortcut">6</span>
+          <span class="nav-icon">📁</span>
+          <span class="nav-label">THE 13TH ARCHIVE</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main View Switcher Container -->
+    <main class="workstation-body" id="viewContainer">
+      <!-- Dynamic Views injected here via app.js -->
+    </main>
+
+    <!-- Progressive Hint Modal Overlay -->
+    <div id="hintModalOverlay" class="hint-modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="hintTitle">
+      <div class="hint-modal-box">
+        <div class="hint-modal-header">
+          <div class="hint-modal-title" id="hintTitle">
+            <span class="hint-bulb">💡</span> FORENSIC INVESTIGATION ADVISORY &bull; <span id="hintChapterBadge" class="text-amber">CH 02</span>
+          </div>
+          <button class="btn-close-modal" id="btnCloseHintModal" aria-label="Close Hint Modal">&times;</button>
+        </div>
+        <div class="hint-modal-body">
+          <p class="hint-subtitle">Progressive guidance reveals three tiers of inquiry without spoiling the deductions:</p>
+          
+          <div class="hint-tiers-container">
+            <div class="hint-tier-card" id="hintCardTier1">
+              <div class="hint-tier-head">
+                <span class="hint-tier-badge badge-subtle">TIER 1 &bull; SUBTLE NUDGE</span>
+                <span class="hint-tier-status">Always Available</span>
+              </div>
+              <div class="hint-tier-text" id="hintTextTier1">Loading hint...</div>
+            </div>
+
+            <div class="hint-tier-card" id="hintCardTier2">
+              <div class="hint-tier-head">
+                <span class="hint-tier-badge badge-medium">TIER 2 &bull; LOGICAL CONNECTION</span>
+                <button class="btn-reveal-tier" id="btnRevealTier2">REVEAL TIER 2</button>
+              </div>
+              <div class="hint-tier-text locked" id="hintTextTier2">Click "Reveal Tier 2" to uncover corroboration and contradiction guidance.</div>
+            </div>
+
+            <div class="hint-tier-card" id="hintCardTier3">
+              <div class="hint-tier-head">
+                <span class="hint-tier-badge badge-directive">TIER 3 &bull; DIRECTIVE CLUE</span>
+                <button class="btn-reveal-tier" id="btnRevealTier3">REVEAL TIER 3</button>
+              </div>
+              <div class="hint-tier-text locked" id="hintTextTier3">Click "Reveal Tier 3" for explicit forensic action steps.</div>
+            </div>
+          </div>
+        </div>
+        <div class="hint-modal-footer">
+          <span class="hint-shortcut-note">Press <kbd>Esc</kbd> to dismiss &bull; <kbd>H</kbd> to toggle</span>
+          <button class="btn-dossier-nav" id="btnCloseHintFooter">ACKNOWLEDGE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Global Footer Status Bar -->
+    <footer class="workstation-footer">
+      <div class="footer-terminal-status">
+        <span class="terminal-blink">●</span> SEC-NET: BLACKWOOD SUB-LEVEL 3 COLD ARCHIVE &bull; LOCAL TIME RECORD: 23:42:18 EST
+      </div>
+      <div class="footer-memo">
+        "Twelve people vanished. One person was never there. Find the thirteenth file before they find you."
+    </footer>
+  </div>
+
+  <!-- Main ES Module Script -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
