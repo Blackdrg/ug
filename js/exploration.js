@@ -23,7 +23,8 @@ export class ExplorationEngine {
         { id: 'CLUE_TUNNEL_GRAFFITI', label: 'Red Wall Graffiti: "THEY ARE NOT GOING TO LET US OUT - 13"', x: 86, y: 48, icon: '🩸' },
         { id: 'CLUE_MAINTENANCE_LOG', label: 'Sub-Level 3 Bypass Culvert Valve', x: 42, y: 62, icon: '🔧' },
         { id: 'CLUE_BURNT_FUSE', label: 'Charred Conduit Box on Waterline', x: 56, y: 74, icon: '🔥' },
-        { id: 'CLUE_AUDIO_TAPE_THORNE', label: 'Emergency Drainage Sump Grate', x: 32, y: 80, icon: '📼' }
+        { id: 'CLUE_AUDIO_TAPE_THORNE', label: 'Emergency Drainage Sump Grate', x: 32, y: 80, icon: '📼' },
+        { id: 'CLUE_GENERATOR_TELEMETRY', label: 'Substation B Backup Generator Terminal', x: 70, y: 30, icon: '⚡' }
       ],
       ROOM_LAB: [
         { id: 'CLUE_CRYO_LOG', label: 'Cryo-Chamber Pod #13 (Active Gamma Sync)', x: 28, y: 46, icon: '❄️' },

@@ -1,7 +1,7 @@
 // Master Application Coordinator & Accessibility Engine
 import { state } from './state.js';
 import { sound } from './audio.js';
-import { HINTS } from './data.js';
+import { HINTS, CLUES } from './data.js';
 import { ExplorationEngine } from './exploration.js';
 import { MysteryBoard } from './mystery-board.js';
 import { EvidenceDossier } from './evidence-dossier.js';
@@ -281,9 +281,11 @@ class MysteryApp {
 
   updateHUD() {
     const discovered = state.discoveredClueIds.length;
-    if (this.statusCluesCount) this.statusCluesCount.textContent = `${discovered} / 16`;
+    const total = CLUES.length;
+    if (this.statusCluesCount) this.statusCluesCount.textContent = `${discovered} / ${total}`;
     if (this.statusContradictions) this.statusContradictions.textContent = `${state.resolvedClaimIds.length} / 4`;
-    if (this.statusChapter) this.statusChapter.textContent = `CH 0${state.currentChapter}`;
+    const chStr = String(state.currentChapter).padStart(2, '0');
+    if (this.statusChapter) this.statusChapter.textContent = `CH ${chStr}`;
   }
 
   switchView(viewName) {
@@ -428,6 +430,9 @@ class MysteryApp {
       toast = document.createElement('div');
       toast.id = 'gameToast';
       toast.className = 'game-toast';
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      toast.setAttribute('aria-atomic', 'true');
       document.body.appendChild(toast);
     }
     toast.textContent = message;

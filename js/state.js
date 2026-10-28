@@ -42,16 +42,9 @@ class BulletproofGameState {
     ];
 
     // Corkboard yarn connections with explicit relationship types & facts
-    this.yarnConnections = [
-      {
-        id: 'YARN_INIT_1',
-        fromId: 'CLUE_CAMERA_LOG',
-        toId: 'CLUE_13TH_FILE',
-        type: 'CONTRADICTION',
-        isContradiction: true,
-        factEstablished: 'Camera Node 04 severed at 23:42 contradicts official timeline for Dr. Paul Vance.'
-      }
-    ];
+    // Initial yarn: the canonically correct CONTRADICTION between camera cutoff and generator telemetry
+    this.yarnConnections = [];
+    // (Starting with no pre-drawn yarns — player draws their own connections)
 
     // Sticky Notes
     this.stickyNotes = [
@@ -71,7 +64,7 @@ class BulletproofGameState {
       },
       {
         id: 'NOTE_3',
-        text: '12 MISSING.\nONE WAS NEVERE',
+        text: '12 MISSING.\nONE WAS NEVER\nTHERE.',
         x: 20,
         y: 450,
         color: '#ffea79'
@@ -478,6 +471,21 @@ class BulletproofGameState {
 
     const check = this.canAttemptDeduction(deductionId);
     if (!check.allowed) return { success: false, reason: check.reason };
+
+    // Check required yarn board connections (Phase 2: requiredLinks prerequisite)
+    if (target.requiredLinks && target.requiredLinks.length > 0) {
+      const missingLinks = target.requiredLinks.filter(([clueA, clueB]) => {
+        return !this.yarnConnections.some(
+          y => (y.fromId === clueA && y.toId === clueB) || (y.fromId === clueB && y.toId === clueA)
+        );
+      });
+      if (missingLinks.length > 0) {
+        return {
+          success: false,
+          reason: `You must connect the required evidence on the Mystery Board first (${missingLinks.length} connection(s) missing).`
+        };
+      }
+    }
 
     const correctOption = target.options.find(o => o.isCorrect);
     if (status.selectedOptionId !== correctOption.id) {

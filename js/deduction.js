@@ -1,32 +1,68 @@
-// Player-Led Deduction Matrix & Final Case Study Journal with Anti-Cheat Prerequisite Validation
+// Player-Led Deduction Matrix — Fully Data-Driven, Anti-Cheat Prerequisites
+// Rewritten to render from DEDUCTIONS data, present genuine player choices, and
+// replace alert() with in-page panels. (Phase 1 fix: P1-A, P1-B, P3-C)
 import { DEDUCTIONS, ENDINGS, CLUES } from './data.js';
 import { state } from './state.js';
 import { sound } from './audio.js';
 
-export class DeductionMatrix {
-  constructor(containerEl, onTriggerEnding) {
-    this.container = containerEl;
-    this.onTriggerEnding = onTriggerEnding;
-    this.activeDeductionKey = 'COVER_UP'; // 'COVER_UP' | 'FIRE_STAGED' | 'I_AM_THE_13TH'
-    this.feedback = {};
-    this.prerequisiteError = null;
+// Map from active deduction tab key → deduction ID
+const DEDUCTION_TAB_MAP = {
+  SABOTAGE: 'DED_SABOTAGE_TIMELINE',
+  COVERUP:  'DED_COVERUP_FIRE',
+  IDENTITY: 'DED_SUBJECT_13_IDENTITY'
+};
 
+// Map from deduction resolution state → best available ending ID
+function computeBestEnding() {
+  const s1 = state.deductionsStatus['DED_SABOTAGE_TIMELINE']?.resolved;
+  const s2 = state.deductionsStatus['DED_COVERUP_FIRE']?.resolved;
+  const s3 = state.deductionsStatus['DED_SUBJECT_13_IDENTITY']?.resolved;
+  if (s1 && s2 && s3) return 'THE_13TH_FILE_UNLOCKED';
+  if (s1 && s2)       return 'CORPORATE_EXPOSE';
+  if (s1)             return 'OFFICIAL_PATSY';
+  return null;
+}
+
+export class DeductionMatrix {
+  constructor(containerEl) {
+    this.container = containerEl;
+    this.activeTabKey = 'SABOTAGE'; // 'SABOTAGE' | 'COVERUP' | 'IDENTITY'
+    this.validationResult = null;   // { success, reason, explanation }
+    this.endingResult = null;       // ending object after successful indictment
     this.render();
     this.setupListeners();
   }
 
+  get activeDedId() {
+    return DEDUCTION_TAB_MAP[this.activeTabKey];
+  }
+
   render() {
+    const activeDed = DEDUCTIONS.find(d => d.id === this.activeDedId);
+    const activeStatus = state.deductionsStatus[this.activeDedId] || {};
+
+    // Compute pillar readiness
+    const pillars = DEDUCTIONS.map(d => ({
+      ...d,
+      isResolved: !!state.deductionsStatus[d.id]?.resolved
+    }));
+
+    // Determine which tab keys map to which deductions in order
+    const tabs = [
+      { key: 'SABOTAGE', dedId: 'DED_SABOTAGE_TIMELINE', label: 'PILLAR 1: MISSING HOUR', short: 'Missing Hour' },
+      { key: 'COVERUP',  dedId: 'DED_COVERUP_FIRE',      label: 'PILLAR 2: STAGED FIRE',  short: 'Staged Fire' },
+      { key: 'IDENTITY', dedId: 'DED_SUBJECT_13_IDENTITY', label: 'PILLAR 3: 13TH IDENTITY', short: '13th Identity' }
+    ];
+
     this.container.innerHTML = `
       <div class="case-study-screen-container">
-        <!-- Background Scene: Interrogation Room & Witness matching Reference Image 5 -->
+        <!-- Background Scene -->
         <div class="case-study-background">
           <div class="room-rainy-window-bg"></div>
-          
           <div class="witness-across-desk">
             <div class="witness-figure"></div>
             <div class="desk-lamp-glow"></div>
           </div>
-
           <div class="background-corkboard-preview">
             <div class="bg-board-center-card">THE 13TH FILE?</div>
             <div class="bg-board-string s1"></div>
@@ -36,64 +72,98 @@ export class DeductionMatrix {
         </div>
 
         <div class="case-study-interactive-layer">
-          <!-- Left HUD: The Deduction Selection Matrix matching Reference Image 5 -->
+          <!-- Left HUD: Deduction pillar tabs + active deduction options -->
           <div class="deduction-left-hud">
-            <div class="hud-main-heading">THE DEDUCTION:</div>
+            <div class="hud-main-heading">EVIDENTIARY PILLARS:</div>
 
-            <div class="deduction-choice-group">
-              <!-- Choice 1: The 13th File Was a Cover-Up -->
-              <div class="deduction-choice-item ${this.activeDeductionKey === 'COVER_UP' ? 'selected' : ''}" data-ded-key="COVER_UP" tabindex="0" role="radio" aria-checked="${this.activeDeductionKey === 'COVER_UP'}">
-                <div class="choice-checkbox">[ ${this.activeDeductionKey === 'COVER_UP' ? 'X' : ' '} ]</div>
-                <div class="choice-text-block">
-                  <div class="choice-title">THE 13TH FILE WAS A COVER-UP:</div>
-                  <div class="choice-sub">Expose the facility's illegal research and Dr. Finch's unconsented human trials.</div>
-                </div>
-              </div>
-
-              <!-- Choice 2: The Fire Was Staged -->
-              <div class="deduction-choice-item ${this.activeDeductionKey === 'FIRE_STAGED' ? 'selected' : ''}" data-ded-key="FIRE_STAGED" tabindex="0" role="radio" aria-checked="${this.activeDeductionKey === 'FIRE_STAGED'}">
-                <div class="choice-checkbox">[ ${this.activeDeductionKey === 'FIRE_STAGED' ? 'X' : ' '} ]</div>
-                <div class="choice-text-block">
-                  <div class="choice-title">THE FIRE WAS STAGED:</div>
-                  <div class="choice-sub">Trust the missing survivors, expose Chief Vance's arson, and seal the evidence.</div>
-                </div>
-              </div>
-
-              <!-- Choice 3: I Am The 13th (TRUE IDENTITY) -->
-              <div class="deduction-choice-item ${this.activeDeductionKey === 'I_AM_THE_13TH' ? 'selected' : ''}" data-ded-key="I_AM_THE_13TH" tabindex="0" role="radio" aria-checked="${this.activeDeductionKey === 'I_AM_THE_13TH'}">
-                <div class="choice-checkbox">[ ${this.activeDeductionKey === 'I_AM_THE_13TH' ? 'X' : ' '} ]</div>
-                <div class="choice-text-block">
-                  <div class="choice-title">I AM THE 13TH:</div>
-                  <div class="choice-sub">Confront the realization of your own fabricated identity. You were Subject Zero.</div>
-                </div>
-              </div>
+            <!-- Pillar tab switcher -->
+            <div class="deduction-tab-bar" role="tablist" aria-label="Deduction pillars">
+              ${tabs.map(t => {
+                const resolved = state.deductionsStatus[t.dedId]?.resolved;
+                return `
+                  <button class="deduction-tab-btn ${this.activeTabKey === t.key ? 'active' : ''} ${resolved ? 'resolved' : ''}"
+                          data-tab-key="${t.key}"
+                          role="tab"
+                          aria-selected="${this.activeTabKey === t.key}"
+                          title="${t.label}">
+                    ${resolved ? '✓' : '○'} ${t.short}
+                  </button>
+                `;
+              }).join('')}
             </div>
 
-            ${this.prerequisiteError ? `
+            <!-- Active deduction inquiry + radio options -->
+            ${activeDed ? `
+              <div class="deduction-inquiry-box">
+                <div class="inquiry-label">INQUIRY:</div>
+                <div class="inquiry-text">${activeDed.inquiry}</div>
+              </div>
+
+              <div class="deduction-options-list" role="radiogroup" aria-label="Deduction options for ${activeDed.title}">
+                ${activeDed.options.map(opt => {
+                  const isSelected = activeStatus.selectedOptionId === opt.id;
+                  const isResolved = activeStatus.resolved;
+                  const isCorrectAndResolved = isResolved && opt.isCorrect;
+                  return `
+                    <label class="deduction-option-row ${isSelected ? 'selected' : ''} ${isCorrectAndResolved ? 'correct-revealed' : ''}"
+                           data-option-id="${opt.id}"
+                           data-ded-id="${activeDed.id}">
+                      <input type="radio"
+                             name="ded_${activeDed.id}"
+                             value="${opt.id}"
+                             ${isSelected ? 'checked' : ''}
+                             ${isResolved ? 'disabled' : ''}
+                             aria-label="${opt.label}">
+                      <span class="option-radio-mark">${isSelected ? '◉' : '○'}</span>
+                      <span class="option-text">${opt.label}</span>
+                      ${isCorrectAndResolved ? '<span class="option-correct-badge">✓ VERIFIED</span>' : ''}
+                    </label>
+                  `;
+                }).join('')}
+              </div>
+
+              ${activeStatus.resolved ? `
+                <div class="deduction-success-panel">
+                  <div class="success-icon">✓</div>
+                  <div class="success-label">PILLAR DEDUCTION VERIFIED</div>
+                  <div class="success-explanation">${activeDed.explanation}</div>
+                </div>
+              ` : ''}
+            ` : '<div class="inquiry-text">Select a pillar above.</div>'}
+
+            <!-- Validation feedback -->
+            ${this.validationResult && !this.validationResult.success ? `
               <div class="prerequisite-error-card" role="alert">
-                <div class="prereq-error-title">⚠️ MISSING CASE PREREQUISITES:</div>
-                <div class="prereq-error-body">${this.prerequisiteError}</div>
+                <div class="prereq-error-title">⚠️ CANNOT VERIFY DEDUCTION:</div>
+                <div class="prereq-error-body">${this.validationResult.reason}</div>
               </div>
             ` : ''}
 
-            <!-- Validation Action Button with strict anti-cheat check -->
+            <!-- Action buttons -->
             <div class="hud-action-footer">
-              <button class="btn-execute-verdict" id="btnExecuteIndictment">
-                ⚖️ Execute Case Indictment & Reveal Ending
+              ${!activeStatus?.resolved ? `
+                <button class="btn-test-hypothesis" id="btnTestTheory" aria-label="Test the selected hypothesis against evidence">
+                  🔍 Test Hypothesis
+                </button>
+              ` : ''}
+              
+              <button class="btn-execute-verdict" id="btnExecuteIndictment"
+                      ${computeBestEnding() === null ? 'disabled title="Resolve at least one pillar deduction first"' : ''}>
+                ⚖️ Submit Indictment
               </button>
 
-              <!-- Master Cipher Terminal -->
+              <!-- Master Cipher Terminal (Secret Ending D) -->
               <div class="secret-cipher-box">
                 <span class="cipher-label">MASTER TERMINAL CYPHER:</span>
                 <div class="cipher-input-row">
-                  <input type="text" id="cipherInput" placeholder="ENTER 12-CHAR CODE..." maxlength="20" aria-label="Master override code">
+                  <input type="text" id="cipherInput" placeholder="ENTER CODE..." maxlength="20" aria-label="Master override code">
                   <button id="btnSubmitCipher" aria-label="Execute override">OVERRIDE</button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Center/Right: Handheld Leather 'FINAL CASE STUDY' Notebook held in gloved hands matching Image 5 -->
+          <!-- Right: Handheld Notebook with dynamic pillar status -->
           <div class="handheld-notebook-container">
             <div class="leather-notebook-wrapper">
               <div class="spiral-binding"></div>
@@ -106,34 +176,23 @@ export class DeductionMatrix {
                   <div class="scribble-line">Time: 11:42 PM - Camera disabled</div>
                   <div class="scribble-line">Time: 11:59 PM - Breaker 4B thermite</div>
                   
-                  <!-- Timeline axis diagram matching Image 5 -->
                   <div class="handwritten-timeline-diagram">
                     <div class="timeline-bar">
                       <span class="timeline-cross c1">✖ 23:42</span>
                       <span class="timeline-cross c2">✖ 00:00</span>
                       <span class="timeline-cross c3">? 00:15</span>
                     </div>
-                    <div class="timeline-caption">The 13th timeline &bull; Escape breach culvert</div>
+                    <div class="timeline-caption">The 13th timeline • Escape breach culvert</div>
                   </div>
 
-                  <div class="scribbled-note">
-                    <span class="arrow-marker">↳</span> "Crown missing investigation transferred on the mystery post regime!"
-                  </div>
-
-                  <!-- Pillar Status Readiness Badges (Priority 1 & 2) -->
+                  <!-- Live pillar status -->
                   <div class="pillars-readiness-box">
-                    <div class="readiness-item ${state.deductionsStatus['DED_SABOTAGE_TIMELINE']?.resolved ? 'ready' : 'unmet'}">
-                      <span>Pillar 1: Sabotage Timeline</span>
-                      <span>${state.deductionsStatus['DED_SABOTAGE_TIMELINE']?.resolved ? '✓ VERIFIED' : 'PENDING'}</span>
-                    </div>
-                    <div class="readiness-item ${state.deductionsStatus['DED_COVERUP_FIRE']?.resolved ? 'ready' : 'unmet'}">
-                      <span>Pillar 2: Fire Cover-Up</span>
-                      <span>${state.deductionsStatus['DED_COVERUP_FIRE']?.resolved ? '✓ VERIFIED' : 'PENDING'}</span>
-                    </div>
-                    <div class="readiness-item ${state.deductionsStatus['DED_SUBJECT_13_IDENTITY']?.resolved ? 'ready' : 'unmet'}">
-                      <span>Pillar 3: Subject 13 Identity</span>
-                      <span>${state.deductionsStatus['DED_SUBJECT_13_IDENTITY']?.resolved ? '✓ VERIFIED' : 'PENDING'}</span>
-                    </div>
+                    ${pillars.map(p => `
+                      <div class="readiness-item ${p.isResolved ? 'ready' : 'unmet'}">
+                        <span>${p.title.replace(/^Deduction \d+: /, '')}</span>
+                        <span>${p.isResolved ? '✓ VERIFIED' : 'PENDING'}</span>
+                      </div>
+                    `).join('')}
                   </div>
                 </div>
               </div>
@@ -145,6 +204,10 @@ export class DeductionMatrix {
                   <div class="checklist-item ${state.isClueDiscovered('CLUE_CAMERA_LOG') ? 'checked' : ''}">
                     <span class="check-box">${state.isClueDiscovered('CLUE_CAMERA_LOG') ? '✓' : '□'}</span>
                     <span class="check-text">Node 04 severed at 23:42 (Marcus Vance)</span>
+                  </div>
+                  <div class="checklist-item ${state.isClueDiscovered('CLUE_GENERATOR_TELEMETRY') ? 'checked' : ''}">
+                    <span class="check-box">${state.isClueDiscovered('CLUE_GENERATOR_TELEMETRY') ? '✓' : '□'}</span>
+                    <span class="check-text">Substation B: uninterrupted backup power</span>
                   </div>
                   <div class="checklist-item ${state.isClueDiscovered('CLUE_BURNT_FUSE') ? 'checked' : ''}">
                     <span class="check-box">${state.isClueDiscovered('CLUE_BURNT_FUSE') ? '✓' : '□'}</span>
@@ -158,21 +221,30 @@ export class DeductionMatrix {
                     <span class="check-box">${state.isClueDiscovered('CLUE_CRYO_LOG') ? '✓' : '□'}</span>
                     <span class="check-text">Pod 13 active brainwaves (Julian Ward)</span>
                   </div>
+                  <div class="checklist-item ${state.isClueDiscovered('CLUE_NEURAL_READOUT') ? 'checked' : ''}">
+                    <span class="check-box">${state.isClueDiscovered('CLUE_NEURAL_READOUT') ? '✓' : '□'}</span>
+                    <span class="check-text">Neural graft trial #44 identity overwrite confirmed</span>
+                  </div>
                 </div>
 
                 <div class="investigator-ink-conclusion">
                   ${this.getNotebookAnalysisText()}
                 </div>
 
-                <div class="notebook-actions-row">
-                  <button class="btn-notebook-test" id="btnTestTheory">
-                    🔍 Test Hypothesis Consistency
-                  </button>
-                </div>
+                <!-- Ending preview if indictment ready -->
+                ${computeBestEnding() ? `
+                  <div class="ending-preview-badge">
+                    ${(() => {
+                      const eid = computeBestEnding();
+                      const e = ENDINGS[eid];
+                      return `<span style="color:${e.color}">★ ${e.badge}: ${e.title}</span>`;
+                    })()}
+                  </div>
+                ` : ''}
               </div>
             </div>
 
-            <!-- Gloved Hands holding the notebook matching Reference Image 5 -->
+            <!-- Gloved Hands matching Reference Image 5 -->
             <div class="gloved-hands-holding-notebook">
               <div class="left-glove-grip"></div>
               <div class="right-glove-pen-hand">
@@ -181,127 +253,150 @@ export class DeductionMatrix {
             </div>
           </div>
         </div>
+
+        <!-- Ending modal rendered inline (replaces alert()) -->
+        ${this.endingResult ? this.renderEndingInline(this.endingResult) : ''}
       </div>
     `;
   }
 
   getNotebookAnalysisText() {
-    if (this.activeDeductionKey === 'COVER_UP') {
-      return `Current Theory: The electrical fire was a corporate cover-up ordered by Director Finch to bury Dr. Cruz's whistleblower SOS and incinerate Sub-Level 3.`;
-    } else if (this.activeDeductionKey === 'FIRE_STAGED') {
-      return `Current Theory: Chief Marcus Vance staged the fire using military thermite canisters to conceal the midnight culvert breakout.`;
-    } else {
-      return `Current Theory: The 13th file was fabricated. I did not enter Blackwood as an outside detective. I was Test Subject Zero. The 'Julian Ward' detective memory was grafted into my mind.`;
-    }
+    const s1 = state.deductionsStatus['DED_SABOTAGE_TIMELINE']?.resolved;
+    const s2 = state.deductionsStatus['DED_COVERUP_FIRE']?.resolved;
+    const s3 = state.deductionsStatus['DED_SUBJECT_13_IDENTITY']?.resolved;
+    if (s3) return `Current Theory: The 13th file was fabricated. I did not enter Blackwood as an outside detective. I was Test Subject Zero. The 'Julian Ward' detective memory was grafted into my mind.`;
+    if (s2) return `Current Theory: The electrical fire was a corporate cover-up ordered by Director Finch to bury Dr. Cruz's whistleblower SOS and incinerate Sub-Level 3.`;
+    if (s1) return `Current Theory: Chief Marcus Vance staged the fire using military thermite canisters to conceal the midnight culvert breakout.`;
+    return `Begin your investigation. Select a hypothesis for each Pillar and test it with physical evidence.`;
+  }
+
+  renderEndingInline(ending) {
+    return `
+      <div class="ending-inline-overlay" id="endingOverlay" role="dialog" aria-modal="true" aria-labelledby="endingTitle">
+        <div class="ending-modal-card" style="border-top: 6px solid ${ending.color};">
+          <div class="modal-badge-row">
+            <span class="ending-badge" style="background: ${ending.color};">${ending.badge}</span>
+          </div>
+          <h1 class="ending-title" id="endingTitle">${ending.title}</h1>
+          <h3 class="ending-sub">${ending.subtitle}</h3>
+          <div class="ending-body-text">
+            <pre class="ending-formatted">${ending.description}</pre>
+          </div>
+          <div class="ending-actions">
+            <button class="btn-restart-game" id="btnCloseEndingInline">Return to Investigation Workstation</button>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   setupListeners() {
     this.container.addEventListener('click', (e) => {
-      // Toggle Deduction Choice
-      const choiceItem = e.target.closest('.deduction-choice-item');
-      if (choiceItem) {
+      // Tab switching
+      const tabBtn = e.target.closest('.deduction-tab-btn');
+      if (tabBtn) {
         sound.playClick();
-        this.activeDeductionKey = choiceItem.dataset.dedKey;
-        this.prerequisiteError = null;
+        this.activeTabKey = tabBtn.dataset.tabKey;
+        this.validationResult = null;
         this.render();
         return;
       }
 
-      // Test Hypothesis Consistency button
-      const btnTest = e.target.closest('#btnTestTheory');
-      if (btnTest) {
+      // Radio option selection
+      const optionRow = e.target.closest('.deduction-option-row');
+      if (optionRow && !e.target.closest('input[disabled]')) {
         sound.playClick();
-        let targetDedId = 'DED_SABOTAGE_TIMELINE';
-        if (this.activeDeductionKey === 'COVER_UP') targetDedId = 'DED_COVERUP_FIRE';
-        if (this.activeDeductionKey === 'I_AM_THE_13TH') targetDedId = 'DED_SUBJECT_13_IDENTITY';
-
-        // Auto select the correct option if the player selected this theory
-        const targetDed = DEDUCTIONS.find(d => d.id === targetDedId);
-        const correctOpt = targetDed?.options.find(o => o.isCorrect);
-        if (correctOpt) {
-          state.setDeductionOption(targetDedId, correctOpt.id);
-        }
-
-        const result = state.validateDeduction(targetDedId);
-        if (result.success) {
-          sound.playContradictionSuccess();
-          this.prerequisiteError = null;
-          alert(`✓ Hypothesis Validated: ${result.explanation}`);
-        } else {
-          sound.playClick();
-          this.prerequisiteError = result.reason;
-        }
-        this.render();
-        return;
-      }
-
-      // Execute Indictment & Trigger Ending (Strict Prerequisite Verification)
-      const btnExec = e.target.closest('#btnExecuteIndictment');
-      if (btnExec) {
-        let endingId = 'CORPORATE_EXPOSE';
-        if (this.activeDeductionKey === 'FIRE_STAGED') endingId = 'OFFICIAL_PATSY';
-        if (this.activeDeductionKey === 'I_AM_THE_13TH') endingId = 'THE_13TH_FILE_UNLOCKED';
-
-        const result = state.executeEnding(endingId);
-        if (result.success) {
-          sound.playContradictionSuccess();
-          this.prerequisiteError = null;
-          this.showEndingModal(result.ending);
-        } else {
-          sound.playClick();
-          this.prerequisiteError = result.error;
+        const optionId = optionRow.dataset.optionId;
+        const dedId = optionRow.dataset.dedId;
+        if (dedId && optionId) {
+          state.setDeductionOption(dedId, optionId);
+          this.validationResult = null;
           this.render();
         }
         return;
       }
 
-      // Secret Master Cypher
+      // Test Hypothesis button — validates the ACTIVE deduction only
+      const btnTest = e.target.closest('#btnTestTheory');
+      if (btnTest) {
+        sound.playClick();
+        const activeDedId = this.activeDedId;
+        const result = state.validateDeduction(activeDedId);
+        this.validationResult = result;
+        if (result.success) {
+          sound.playContradictionSuccess();
+        }
+        this.render();
+        return;
+      }
+
+      // Execute Indictment — determines ending from resolved deductions
+      const btnExec = e.target.closest('#btnExecuteIndictment');
+      if (btnExec) {
+        sound.playClick();
+        const endingId = computeBestEnding();
+        if (!endingId) {
+          this.validationResult = { success: false, reason: 'Resolve at least one Pillar Deduction before submitting your indictment.' };
+          this.render();
+          return;
+        }
+        const result = state.executeEnding(endingId);
+        if (result.success) {
+          sound.playContradictionSuccess();
+          this.endingResult = result.ending;
+          this.validationResult = null;
+          this.render();
+        } else {
+          this.validationResult = { success: false, reason: result.error };
+          this.render();
+        }
+        return;
+      }
+
+      // Close inline ending overlay
+      const btnCloseEnding = e.target.closest('#btnCloseEndingInline');
+      if (btnCloseEnding) {
+        sound.playClick();
+        this.endingResult = null;
+        this.render();
+        return;
+      }
+
+      // Secret Ending D cipher
       const btnCipher = e.target.closest('#btnSubmitCipher');
       if (btnCipher) {
         const input = this.container.querySelector('#cipherInput');
         const code = (input?.value || '').trim().toUpperCase();
-
         const result = state.executeEnding('JANUS_GLOBAL_AWAKENING', code);
         if (result.success) {
           sound.playContradictionSuccess();
-          this.prerequisiteError = null;
-          this.showEndingModal(result.ending);
+          this.endingResult = result.ending;
+          this.validationResult = null;
+          this.render();
         } else {
-          sound.playClick();
-          this.prerequisiteError = result.error;
+          this.validationResult = { success: false, reason: result.error };
           this.render();
         }
         return;
       }
     });
-  }
 
-  showEndingModal(ending) {
-    const modal = document.createElement('div');
-    modal.className = 'ending-modal-overlay';
-    modal.innerHTML = `
-      <div class="ending-modal-card" style="border-top: 6px solid ${ending.color};">
-        <div class="modal-badge-row">
-          <span class="ending-badge" style="background: ${ending.color};">${ending.badge}</span>
-        </div>
-        <h1 class="ending-title">${ending.title}</h1>
-        <h3 class="ending-sub">${ending.subtitle}</h3>
-
-        <div class="ending-body-text">
-          <pre class="ending-formatted">${ending.description}</pre>
-        </div>
-
-        <div class="ending-actions">
-          <button class="btn-restart-game" id="btnCloseEnding">Return to Investigation Workstation</button>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    modal.querySelector('#btnCloseEnding').addEventListener('click', () => {
-      sound.playClick();
-      modal.remove();
+    // Radio input change (direct input click)
+    this.container.addEventListener('change', (e) => {
+      const input = e.target.closest('input[type="radio"]');
+      if (input) {
+        sound.playClick();
+        const row = input.closest('.deduction-option-row');
+        if (row) {
+          const optionId = row.dataset.optionId;
+          const dedId = row.dataset.dedId;
+          if (dedId && optionId) {
+            state.setDeductionOption(dedId, optionId);
+            this.validationResult = null;
+            this.render();
+          }
+        }
+      }
     });
   }
 }

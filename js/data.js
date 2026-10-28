@@ -40,7 +40,7 @@ export const ROOMS = [
     viewMode: 'lantern_tunnel',
     narration: 'INVESTIGATOR: "The official records show these tunnels were sealed before the fire... but these doors were forced open from the inside. They tried to escape through here."',
     description: 'Waist-deep black water rushes through rusted sewer conduits. A brass storm lantern casts long quivering shadows across crimson wall graffiti: "THEY ARE NOT GOING TO LET US OUT - 13".',
-    clueIds: ['CLUE_TUNNEL_GRAFFITI', 'CLUE_MAINTENANCE_LOG', 'CLUE_BURNT_FUSE', 'CLUE_AUDIO_TAPE_THORNE']
+    clueIds: ['CLUE_TUNNEL_GRAFFITI', 'CLUE_MAINTENANCE_LOG', 'CLUE_BURNT_FUSE', 'CLUE_AUDIO_TAPE_THORNE', 'CLUE_GENERATOR_TELEMETRY']
   },
   {
     id: 'ROOM_LAB',

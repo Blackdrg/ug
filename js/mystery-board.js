@@ -12,6 +12,7 @@ export class MysteryBoard {
     this.draggingItem = null;
     this.dragOffset = { x: 0, y: 0 };
     this.activeToast = null;
+    this.selectedYarnId = null; // tracks first-click on yarn for delete confirmation
 
     // Suspect Mugshots matching Reference Image 4
     this.suspectMugshots = [
@@ -339,7 +340,7 @@ export class MysteryBoard {
         return;
       }
 
-      // Yarn line click to delete or view fact
+      // Yarn line click: first click selects + shows fact, second click deletes
       const yarnPath = e.target.closest('.yarn-line');
       if (yarnPath) {
         const fromId = yarnPath.dataset.fromId;
@@ -348,8 +349,21 @@ export class MysteryBoard {
           y => (y.fromId === fromId && y.toId === toId) || (y.fromId === toId && y.toId === fromId)
         );
         if (yarn) {
-          sound.playClick();
-          this.showFactNotification(`[${yarn.type}] ${yarn.factEstablished} (Click again to remove)`);
+          if (this.selectedYarnId === yarn.id) {
+            // Second click — delete
+            sound.playClick();
+            state.removeYarnConnection(yarn.fromId, yarn.toId);
+            this.selectedYarnId = null;
+            this.showFactNotification(`🗑️ Connection removed: ${yarn.factEstablished}`);
+            this.render();
+          } else {
+            // First click — select + show fact
+            sound.playClick();
+            this.selectedYarnId = yarn.id;
+            this.showFactNotification(`[${yarn.type}] ${yarn.factEstablished} ↩ Click again to remove.`);
+            // Re-draw to show selection highlight
+            this.drawYarnConnections();
+          }
         }
         return;
       }

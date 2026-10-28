@@ -3700,3 +3700,247 @@ body.crt-scanlines::after {
   border-radius: 4px;
   cursor: pointer;
 }
+
+/* ==========================================================================
+   Deduction Matrix — Rewritten Data-Driven Components (Phase 2 fix)
+   ========================================================================== */
+
+/* Pillar tab bar */
+.deduction-tab-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.deduction-tab-btn {
+  flex: 1;
+  min-width: 100px;
+  background: rgba(14, 20, 31, 0.7);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 8px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.deduction-tab-btn:hover {
+  border-color: var(--neon-amber);
+  color: var(--neon-amber);
+}
+
+.deduction-tab-btn.active {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.08);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.15);
+}
+
+.deduction-tab-btn.resolved {
+  border-color: var(--neon-green);
+  color: var(--neon-green);
+  background: rgba(0, 255, 157, 0.07);
+}
+
+.deduction-tab-btn.active.resolved {
+  border-color: var(--neon-green);
+  box-shadow: 0 0 12px rgba(0, 255, 157, 0.2);
+}
+
+/* Inquiry box */
+.deduction-inquiry-box {
+  background: rgba(255, 183, 3, 0.06);
+  border: 1px solid rgba(255, 183, 3, 0.25);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.inquiry-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--neon-amber);
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+}
+
+.inquiry-text {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+/* Deduction radio options */
+.deduction-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.deduction-option-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(14, 20, 31, 0.6);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  position: relative;
+}
+
+.deduction-option-row:hover {
+  border-color: var(--neon-amber);
+  background: rgba(255, 183, 3, 0.05);
+}
+
+.deduction-option-row.selected {
+  border-color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.06);
+}
+
+.deduction-option-row.correct-revealed {
+  border-color: var(--neon-green);
+  background: rgba(0, 255, 157, 0.07);
+}
+
+.deduction-option-row input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.option-radio-mark {
+  font-size: 1rem;
+  color: var(--neon-cyan);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.option-text {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--text-main);
+  line-height: 1.45;
+  flex: 1;
+}
+
+.option-correct-badge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--neon-green);
+  font-weight: 700;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* Deduction success panel (replaces alert) */
+.deduction-success-panel {
+  background: rgba(0, 255, 157, 0.07);
+  border: 1px solid var(--neon-green);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: successPulse 0.4s ease;
+}
+
+@keyframes successPulse {
+  0%   { transform: scale(0.97); opacity: 0.6; }
+  60%  { transform: scale(1.01); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.success-icon {
+  font-size: 1.5rem;
+  color: var(--neon-green);
+}
+
+.success-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--neon-green);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.success-explanation {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--text-main);
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+/* Test hypothesis button */
+.btn-test-hypothesis {
+  width: 100%;
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+}
+
+.btn-test-hypothesis:hover {
+  background: rgba(0, 240, 255, 0.15);
+  box-shadow: var(--shadow-glow-cyan);
+}
+
+/* Ending inline overlay (replaces browser alert for endings) */
+.ending-inline-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(2, 4, 12, 0.92);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeInOverlay 0.3s ease;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Ending preview badge in notebook */
+.ending-preview-badge {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: rgba(14, 20, 31, 0.7);
+  border: 1px solid rgba(100, 100, 120, 0.3);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+/* Yarn line double-click/second-click to delete — visual feedback */
+.yarn-line.yarn-selected {
+  stroke-width: 6;
+  filter: drop-shadow(0 0 8px rgba(255, 51, 102, 0.7));
+}
+
