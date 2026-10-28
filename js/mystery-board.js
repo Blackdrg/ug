@@ -14,14 +14,14 @@ export class MysteryBoard {
     this.activeToast = null;
     this.selectedYarnId = null; // tracks first-click on yarn for delete confirmation
 
-    // Suspect Mugshots matching Reference Image 4
+    // Suspect Mugshots matching Reference Personnel
     this.suspectMugshots = [
-      { id: 'MUG_1', name: 'DAAGEN LRANIG', role: 'Bio-Cybernetics Lead', x: 70, y: 60, status: '?' },
-      { id: 'MUG_2', name: 'DAVAIN HARGIE', role: 'Facilities Chief', x: 230, y: 60, status: '?' },
-      { id: 'MUG_3', name: 'BAGEH SITTIER', role: 'Data Cryptographer', x: 390, y: 60, status: '?' },
-      { id: 'MUG_4', name: 'DIANIK FROWINER', role: 'Security Officer', x: 150, y: 260, status: '?' },
-      { id: 'MUG_5', name: 'ELIZABETH ?', role: 'Chief Neuroscientist', x: 440, y: 280, status: '?' },
-      { id: 'MUG_6', name: 'DANAR IVEVRER', role: 'External Auditor', x: 100, y: 460, status: '?' }
+      { id: 'MUG_1', name: 'MARCUS VANCE', role: 'Operations Director', x: 70, y: 60, status: 'PERSON OF INTEREST' },
+      { id: 'MUG_2', name: 'DR. ARIS CROSS', role: 'Senior Bio-Telemetry', x: 230, y: 60, status: 'SUSPECT' },
+      { id: 'MUG_3', name: 'VICTOR KRAY', role: 'Head of Site Security', x: 390, y: 60, status: 'SUSPECT' },
+      { id: 'MUG_4', name: 'ANYA NOVA', role: 'Systems Architect', x: 150, y: 260, status: 'SUSPECT' },
+      { id: 'MUG_5', name: 'DR. ALISTAIR FINCH', role: 'Project Director (MIA)', x: 440, y: 280, status: 'MISSING' },
+      { id: 'MUG_6', name: 'SUBJECT 13', role: 'Neural Test Subject', x: 100, y: 460, status: 'UNCONFIRMED' }
     ];
 
     this.render();
@@ -85,6 +85,12 @@ export class MysteryBoard {
 
           <!-- Realistic Corkboard Texture with Mahogany Frame -->
           <div class="cork-surface" id="corkSurface" tabindex="0" aria-label="Interactive cork surface">
+            ${this.connectingFromPinId ? `
+              <div class="yarn-instruction-banner" role="status" aria-live="polite">
+                🧵 <strong>STRING CONNECTION MODE ACTIVE:</strong> Click any push-pin to complete the connection, or click "Cancel String".
+              </div>
+            ` : ''}
+
             <!-- SVG Yarn Connection Layer -->
             <svg class="yarn-svg-layer" id="yarnSvgLayer"></svg>
 
@@ -297,7 +303,15 @@ export class MysteryBoard {
       const btnAddSticky = e.target.closest('#btnAddSticky');
       if (btnAddSticky) {
         sound.playClick();
-        state.addStickyNote('11:42 PM - POWER CUSP CUT?');
+        const sampleNotes = [
+          '23:40 - Power substation surge logged.',
+          'Review camera timestamps against security shift change.',
+          'Where is Dr. Finch\'s private laboratory ledger?',
+          'Telemetry spike recorded before fire suppression triggered.',
+          'Identify the 13th occupant in Sub-Level 3.'
+        ];
+        const randomNote = sampleNotes[Math.floor(Math.random() * sampleNotes.length)];
+        state.addStickyNote(randomNote);
         this.render();
         return;
       }

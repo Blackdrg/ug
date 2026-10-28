@@ -45,7 +45,7 @@ export class InterrogationEngine {
               const active = s.id === suspect.id;
               const resolvedCount = s.claims.filter(c => state.isClaimResolved(c.id)).length;
               return `
-                <div class="suspect-list-item ${active ? 'active' : ''}" data-suspect-id="${s.id}">
+                <div class="suspect-list-item ${active ? 'active' : ''}" data-suspect-id="${s.id}" tabindex="0" role="button" aria-label="View testimony of ${s.name}">
                   <div class="suspect-avatar">${s.avatar}</div>
                   <div class="suspect-item-info">
                     <div class="suspect-item-name">${s.name}</div>
@@ -84,7 +84,7 @@ export class InterrogationEngine {
             <h3 class="section-title">RECORDED CLAIMS & STATEMENTS:</h3>
 
             ${this.feedbackMessage ? `
-              <div class="feedback-banner ${this.feedbackMessage.type}">
+              <div class="feedback-banner ${this.feedbackMessage.type}" role="status" aria-live="polite">
                 ${this.feedbackMessage.text}
               </div>
             ` : ''}
@@ -128,16 +128,22 @@ export class InterrogationEngine {
                           SELECT EVIDENCE FROM YOUR CASE FILES TO REFUTE THIS STATEMENT:
                         </div>
 
-                        <div class="tray-grid">
-                          ${discoveredClues.map(clue => `
-                            <div class="tray-clue-card" data-refute-clue-id="${clue.id}" data-target-claim-id="${claim.id}">
-                              <div class="tray-card-type tag-${clue.category.toLowerCase()}">${clue.category}</div>
-                              <div class="tray-card-title">${clue.title}</div>
-                              <div class="tray-card-summary">${clue.summary.substring(0, 65)}...</div>
-                              <button class="btn-select-clue">Present Clue</button>
-                            </div>
-                          `).join('')}
-                        </div>
+                        ${discoveredClues.length === 0 ? `
+                          <div class="tray-empty-alert" style="padding: 18px; text-align: center; color: #ffb86c; background: rgba(255, 184, 108, 0.08); border: 1px dashed rgba(255, 184, 108, 0.3); border-radius: 6px; font-size: 0.88rem;">
+                            ⚠️ No evidence collected in field yet. Search the Facility rooms to recover clues before challenging testimonies.
+                          </div>
+                        ` : `
+                          <div class="tray-grid">
+                            ${discoveredClues.map(clue => `
+                              <div class="tray-clue-card" tabindex="0" role="button" aria-label="Present clue ${clue.title}" data-refute-clue-id="${clue.id}" data-target-claim-id="${claim.id}">
+                                <div class="tray-card-type tag-${clue.category.toLowerCase()}">${clue.category}</div>
+                                <div class="tray-card-title">${clue.title}</div>
+                                <div class="tray-card-summary">${clue.summary.substring(0, 65)}...</div>
+                                <button class="btn-select-clue">Present Clue</button>
+                              </div>
+                            `).join('')}
+                          </div>
+                        `}
                       </div>
                     ` : ''}
                   </div>
@@ -150,16 +156,47 @@ export class InterrogationEngine {
     `;
   }
 
+  handleSuspectSelect(suspectId) {
+    sound.playClick();
+    this.activeSuspectId = suspectId;
+    this.presentingClaimId = null;
+    this.feedbackMessage = null;
+    this.render();
+  }
+
+  handlePresentClue(clueId, claimId) {
+    const suspect = SUSPECTS.find(s => s.id === this.activeSuspectId);
+    const claim = suspect?.claims.find(c => c.id === claimId);
+
+    if (claim && claim.counterClueId === clueId) {
+      // Success! Contradiction found!
+      sound.playContradictionSuccess();
+      state.resolveClaim(claimId, clueId);
+      this.presentingClaimId = null;
+      this.feedbackMessage = {
+        type: 'success',
+        text: '⚡ CONTRADICTION VERIFIED! The suspect’s claim has been refuted by physical evidence.'
+      };
+      if (this.onClueDiscovered && claim.unlockedEvidence) {
+        this.onClueDiscovered(claim.unlockedEvidence);
+      }
+    } else {
+      // Failure
+      sound.playClick();
+      this.feedbackMessage = {
+        type: 'error',
+        text: '❌ That clue does not contradict this specific statement. Re-examine the timestamps and forensics!'
+      };
+    }
+    this.render();
+  }
+
   setupListeners() {
     this.container.addEventListener('click', (e) => {
       // Switch Suspect
       const suspectItem = e.target.closest('.suspect-list-item');
       if (suspectItem) {
-        sound.playClick();
-        this.activeSuspectId = suspectItem.dataset.suspectId;
-        this.presentingClaimId = null;
-        this.feedbackMessage = null;
-        this.render();
+        this.handleSuspectSelect(suspectItem.dataset.suspectId);
         return;
       }
 
@@ -179,32 +216,29 @@ export class InterrogationEngine {
       if (clueChoice) {
         const clueId = clueChoice.dataset.refuteClueId;
         const claimId = clueChoice.dataset.targetClaimId;
-
-        const suspect = SUSPECTS.find(s => s.id === this.activeSuspectId);
-        const claim = suspect?.claims.find(c => c.id === claimId);
-
-        if (claim && claim.counterClueId === clueId) {
-          // Success! Contradiction found!
-          sound.playContradictionSuccess();
-          state.resolveClaim(claimId, clueId);
-          this.presentingClaimId = null;
-          this.feedbackMessage = {
-            type: 'success',
-            text: '⚡ CONTRADICTION VERIFIED! The suspect’s claim has been refuted by physical evidence.'
-          };
-          if (this.onClueDiscovered && claim.unlockedEvidence) {
-            this.onClueDiscovered(claim.unlockedEvidence);
-          }
-        } else {
-          // Failure
-          sound.playClick();
-          this.feedbackMessage = {
-            type: 'error',
-            text: '❌ That clue does not contradict this specific statement. Re-examine the timestamps and forensics!'
-          };
-        }
-        this.render();
+        this.handlePresentClue(clueId, claimId);
         return;
+      }
+    });
+
+    // Keyboard navigation (Enter / Space on suspect items and clue cards)
+    this.container.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const suspectItem = e.target.closest('.suspect-list-item');
+        if (suspectItem) {
+          e.preventDefault();
+          this.handleSuspectSelect(suspectItem.dataset.suspectId);
+          return;
+        }
+
+        const clueCard = e.target.closest('.tray-clue-card');
+        if (clueCard) {
+          e.preventDefault();
+          const clueId = clueCard.dataset.refuteClueId;
+          const claimId = clueCard.dataset.targetClaimId;
+          this.handlePresentClue(clueId, claimId);
+          return;
+        }
       }
     });
   }

@@ -58,6 +58,9 @@ class MysteryApp {
     window.addEventListener('click', audioInit);
     window.addEventListener('keydown', audioInit);
 
+    // Live footer clock
+    this.startFooterClock();
+
     // Apply saved accessibility preferences
     if (state.reducedMotion) {
       document.documentElement.classList.add('reduced-motion');
@@ -441,6 +444,17 @@ class MysteryApp {
     this.toastTimeout = setTimeout(() => {
       toast.classList.remove('show');
     }, 3500);
+  startFooterClock() {
+    const clockEl = document.getElementById('footerClock');
+    if (!clockEl) return;
+    let simSeconds = 23 * 3600 + 42 * 60 + 18;
+    setInterval(() => {
+      simSeconds++;
+      const h = String(Math.floor(simSeconds / 3600) % 24).padStart(2, '0');
+      const m = String(Math.floor((simSeconds % 3600) / 60)).padStart(2, '0');
+      const s = String(simSeconds % 60).padStart(2, '0');
+      clockEl.textContent = `${h}:${m}:${s} EST`;
+    }, 1000);
   }
 }
 

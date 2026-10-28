@@ -544,20 +544,20 @@ class BulletproofGameState {
     const ending = ENDINGS[endingId];
     if (!ending) return { success: false, error: 'Unknown ending' };
 
-    // Check cipher requirement for Ending D
-    if (ending.requiredCipher) {
-      if ((inputCipher || '').trim().toUpperCase() !== ending.requiredCipher) {
-        return { success: false, error: 'Invalid master override cipher.' };
-      }
-    }
-
-    // Check prerequisites
+    // Check prerequisites first
     const check = this.canExecuteEnding(endingId);
     if (!check.allowed) {
       return {
         success: false,
         error: `Cannot execute indictment. Prerequisites missing:\n- ${check.missingPrerequisites.join('\n- ')}`
       };
+    }
+
+    // Check cipher requirement for Ending D
+    if (ending.requiredCipher) {
+      if ((inputCipher || '').trim().toUpperCase() !== ending.requiredCipher) {
+        return { success: false, error: 'Invalid master override cipher.' };
+      }
     }
 
     if (!this.unlockedEndings.includes(endingId)) {
