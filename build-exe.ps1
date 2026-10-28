@@ -5,32 +5,33 @@ Write-Host "======================================================" -ForegroundC
 Write-Host "   BUILDING STANDALONE EXECUTABLE: MysteryUnlocked.exe" -ForegroundColor Red
 Write-Host "======================================================" -ForegroundColor DarkRed
 
-$csc = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-if (!(Test-Path $csc)) {
-    Write-Error "Microsoft Visual C# compiler not found at $csc"
+$cscPath = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+if (!(Test-Path $cscPath)) {
+    Write-Error "Microsoft Visual C# compiler not found at $cscPath"
 }
 
-# Ensure app.ico exists
-if (!(Test-Path "app.ico")) {
-    Write-Host "app.ico not found, building without custom icon..." -ForegroundColor Yellow
-    $iconArg = ""
+# Check for application icon
+$iconParameter = ""
+if (Test-Path "app.ico") {
+    $iconParameter = "/win32icon:app.ico"
 } else {
-    $iconArg = "/win32icon:app.ico"
+    Write-Host "app.ico not found, building without custom icon..." -ForegroundColor Yellow
 }
 
-$cscArgs = @(
+# Assemble compiler parameters
+$compilerParameters = @(
     "/nologo",
     "/optimize+",
     "/target:exe",
     "/out:MysteryUnlocked.exe"
 )
 
-if ($iconArg -ne "") {
-    $cscArgs += $iconArg
+if ($iconParameter -ne "") {
+    $compilerParameters += $iconParameter
 }
 
 # Embed all necessary web assets
-$assets = @(
+$webAssets = @(
     "index.html",
     "css\style.css",
     "js\app.js",
@@ -45,24 +46,25 @@ $assets = @(
     "js\audio.js"
 )
 
-foreach ($asset in $assets) {
-    if (Test-Path $asset) {
-        $resName = $asset.Replace('\', '/')
-        $cscArgs += "/res:$asset,$resName"
+foreach ($item in $webAssets) {
+    if (Test-Path $item) {
+        $resourceName = $item.Replace('\', '/')
+        $compilerParameters += "/res:$item,$resourceName"
     }
 }
 
 if (Test-Path "app.ico") {
-    $cscArgs += "/res:app.ico,app.ico"
+    $compilerParameters += "/res:app.ico,app.ico"
 }
 
-$cscArgs += "Launcher.cs"
+$compilerParameters += "Launcher.cs"
 
-& $csc $cscArgs
+# Execute C# compiler
+& $cscPath $compilerParameters
 
 if ($LASTEXITCODE -eq 0 -and (Test-Path "MysteryUnlocked.exe")) {
-    $size = (Get-Item "MysteryUnlocked.exe").Length
-    Write-Host "[SUCCESS] Successfully built: MysteryUnlocked.exe ($($size) bytes)" -ForegroundColor Green
+    $fileSize = (Get-Item "MysteryUnlocked.exe").Length
+    Write-Host "[SUCCESS] Successfully built: MysteryUnlocked.exe ($($fileSize) bytes)" -ForegroundColor Green
     Write-Host "You can share 'MysteryUnlocked.exe' with anyone - it runs standalone with zero dependencies!" -ForegroundColor Cyan
 } else {
     Write-Error "Build failed!"
